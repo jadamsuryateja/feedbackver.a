@@ -72,5 +72,24 @@ export const QUESTIONS = [
 ];
 
 export const BRANCHES = [
-  'CSE', 'ECE', 'EEE', 'MECH', 'CIVIL', 'AI', 'AIML', 'DS', 'CS', 'IT', 'MBA', 'MCA'
-];
+  'CSE', 'ECE', 'EEE', 'MECH', 'CIVIL', 
+  'AI', 'AIML', 'DS', 'CS', 'IT', 'MBA', 'MCA'
+] as const;
+
+export interface LoginCredentials {
+  username: string;
+  password: string;
+  role: 'admin' | 'coordinator' | 'bsh';
+  branch?: string;
+}
+
+export interface User {
+  username: string;
+  role: string;
+  branch?: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: User;
+}

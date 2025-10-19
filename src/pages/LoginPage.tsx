@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { BRANCHES } from '../types';
+import { BRANCHES, LoginCredentials } from '../types';
 
 const LoginPage = () => {
   const { login } = useAuth();
@@ -18,7 +18,14 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      await login(username, password, role);
+      const credentials: LoginCredentials = {
+        username,
+        password,
+        role,
+        ...(role === 'coordinator' ? { branch } : {})
+      };
+
+      await login(credentials);
     } catch (err) {
       setError('Invalid credentials. Please try again.');
     } finally {

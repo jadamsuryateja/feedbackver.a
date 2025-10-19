@@ -32,7 +32,11 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 
 // Configure CORS
 app.use(cors({
-  origin: ['https://feedbak-v5-lgsz.vercel.app', 'http://localhost:5173'],
+  origin: [
+    'https://feedbak-v5-lgsz.vercel.app',
+    'https://feedbak-v5-lgsz-git-main-feed-projects.vercel.app',
+    'http://localhost:5173'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true,
@@ -44,6 +48,7 @@ connectDB();
 
 // Security headers middleware
 app.use((req, res, next) => {
+  // Existing headers
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
@@ -51,7 +56,11 @@ app.use((req, res, next) => {
   
   // Update CORS headers
   const origin = req.headers.origin;
-  if (origin && (origin === 'https://feedbak-v5-lgsz.vercel.app' || origin === 'http://localhost:5173')) {
+  if (origin && [
+    'https://feedbak-v5-lgsz.vercel.app',
+    'https://feedbak-v5-lgsz-git-main-feed-projects.vercel.app',
+    'http://localhost:5173'
+  ].includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   res.setHeader('Access-Control-Allow-Credentials', 'true');

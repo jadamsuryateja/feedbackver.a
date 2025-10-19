@@ -1,12 +1,17 @@
-import { Config, ApiErrorResponse } from '../types';
+import { Config, ApiErrorResponse, LoginResponse, LoginCredentials } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const getToken = () => localStorage.getItem('token');
 
+interface LoginError extends Error {
+  status?: number;
+  code?: string;
+}
+
 export const api = {
   auth: {
-    login: async (username: string, password: string, role: string) => {
+    login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
       try {
         const response = await fetch(`${API_URL}/auth/login`, {
           method: 'POST',
@@ -15,19 +20,34 @@ export const api = {
             'Accept': 'application/json'
           },
           credentials: 'include',
-          body: JSON.stringify({ username, password, role })
+          body: JSON.stringify(credentials)
         });
         
+        const data = await response.json();
+
         if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || 'Login failed');
+          const error = new Error(data.message || 'Login failed') as LoginError;
+          error.status = response.status;
+          error.code = data.code;
+          throw error;
         }
         
-        const data = await response.json();
+        // Store token if received
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+        }
+        
         return data;
       } catch (error) {
         console.error('Login error:', error);
-        throw error;
+        
+        // Handle network errors
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+          throw new Error('Unable to connect to the server. Please check your internet connection.');
+        }
+        
+        // Re-throw the error with proper type
+        throw error instanceof Error ? error : new Error('An unexpected error occurred');
       }
     },
 
