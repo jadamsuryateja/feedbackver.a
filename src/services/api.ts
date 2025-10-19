@@ -1,14 +1,8 @@
-import { Config } from '../types';
+import { Config, ApiErrorResponse } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const getToken = () => localStorage.getItem('token');
-
-// Add interface for API error response
-interface ApiErrorResponse {
-  error: string;
-  message?: string;
-}
 
 export const api = {
   auth: {
@@ -32,7 +26,10 @@ export const api = {
       if (!token) throw new Error('No token');
       
       const response = await fetch(`${API_URL}/auth/verify`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
       
       if (!response.ok) {
@@ -66,25 +63,22 @@ export const api = {
     },
 
     create: async (config: Config) => {
+      const token = getToken();
       const response = await fetch(`${API_URL}/config`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(config)
       });
 
-      const responseData = await response.json() as Config | ApiErrorResponse;
-
       if (!response.ok) {
-        const errorMessage = 'error' in responseData 
-          ? responseData.error 
-          : 'Failed to create configuration';
-        throw new Error(errorMessage);
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create config');
       }
 
-      return responseData as Config;
+      return response.json();
     },
 
     getAll: async (params?: any) => {
@@ -116,10 +110,7 @@ export const api = {
       const responseData = await response.json() as Config | ApiErrorResponse;
 
       if (!response.ok) {
-        const errorMessage = 'error' in responseData 
-          ? responseData.error 
-          : 'Failed to update configuration';
-        throw new Error(errorMessage);
+        throw new Error((responseData as ApiErrorResponse).message || 'Failed to update config');
       }
 
       return responseData as Config;

@@ -32,9 +32,10 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 
 // Configure CORS
 app.use(cors({
-  origin: CORS_ORIGIN,
+  origin: process.env.CORS_ORIGIN || '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 // Connect to MongoDB

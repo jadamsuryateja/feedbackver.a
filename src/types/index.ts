@@ -1,5 +1,10 @@
+export interface ApiErrorResponse {
+  error: string;
+  message?: string;
+}
+
 export interface Config {
-  _id?: string;  // Add _id field as optional
+  _id?: string;
   title: string;
   branch: string;
   academicYear: string;

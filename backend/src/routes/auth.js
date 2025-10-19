@@ -4,7 +4,14 @@ import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.post('/login', login);
-router.get('/verify', authenticate, verify);
+router.post('/login', (req, res, next) => {
+  console.log('Login attempt:', req.body);
+  login(req, res, next);
+});
+
+router.get('/verify', authenticate, (req, res, next) => {
+  console.log('Verify attempt:', req.user);
+  verify(req, res, next);
+});
 
 export default router;

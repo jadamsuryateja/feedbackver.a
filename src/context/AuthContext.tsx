@@ -25,7 +25,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (token) {
       api.auth.verify()
         .then(data => setUser(data.user))
-        .catch(() => {
+        .catch((error) => {
+          console.error('Auth verification failed:', error);
           localStorage.removeItem('token');
           setUser(null);
         })
@@ -36,9 +37,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (username: string, password: string, role: string) => {
-    const data = await api.auth.login(username, password, role);
-    localStorage.setItem('token', data.token);
-    setUser(data.user);
+    try {
+      const data = await api.auth.login(username, password, role);
+      localStorage.setItem('token', data.token);
+      setUser(data.user);
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
   };
 
   const logout = () => {
