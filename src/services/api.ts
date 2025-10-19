@@ -7,42 +7,56 @@ const getToken = () => localStorage.getItem('token');
 export const api = {
   auth: {
     login: async (username: string, password: string, role: string) => {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ username, password, role })
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Login failed');
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({ username, password, role })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Login failed');
+        }
+        
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Login error:', error);
+        throw error;
       }
-      
-      return response.json();
     },
 
     verify: async () => {
       const token = getToken();
-      if (!token) throw new Error('No token');
-      
-      const response = await fetch(`${API_URL}/auth/verify`, {
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error('Verification failed');
+      if (!token) {
+        throw new Error('No token found');
       }
       
-      return response.json();
+      try {
+        const response = await fetch(`${API_URL}/auth/verify`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error('Verification failed');
+        }
+        
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Verify error:', error);
+        throw error;
+      }
     }
   },
 
@@ -192,5 +206,3 @@ export const api = {
     }
   }
 };
-
-// Remove unused example code at the bottom

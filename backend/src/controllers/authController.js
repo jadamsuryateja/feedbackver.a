@@ -6,13 +6,21 @@ export const login = async (req, res) => {
   try {
     const { username, password, role } = req.body;
 
+    console.log('Login attempt:', { username, role }); // Add logging
+
     if (!username || !password || !role) {
-      return res.status(400).json({ error: 'All fields are required' });
+      return res.status(400).json({ 
+        error: 'All fields are required',
+        message: 'Username, password and role are required' 
+      });
     }
 
     if (!process.env.JWT_SECRET) {
-      console.error('JWT_SECRET is not defined in environment variables');
-      return res.status(500).json({ error: 'Server configuration error' });
+      console.error('JWT_SECRET is not defined');
+      return res.status(500).json({ 
+        error: 'Server configuration error',
+        message: 'Server is not properly configured' 
+      });
     }
 
     let user = null;
@@ -43,8 +51,21 @@ export const login = async (req, res) => {
       }
     }
 
-    if (!user || !storedPassword || !bcrypt.compareSync(password, storedPassword)) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user || !storedPassword) {
+      console.log('User not found:', username);
+      return res.status(401).json({ 
+        error: 'Invalid credentials',
+        message: 'Username or password is incorrect' 
+      });
+    }
+
+    const isValidPassword = bcrypt.compareSync(password, storedPassword);
+    if (!isValidPassword) {
+      console.log('Invalid password for user:', username);
+      return res.status(401).json({ 
+        error: 'Invalid credentials',
+        message: 'Username or password is incorrect' 
+      });
     }
 
     const token = jwt.sign(
@@ -52,6 +73,8 @@ export const login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
+
+    console.log('Login successful:', username);
 
     res.json({
       token,
@@ -63,7 +86,10 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ 
+      error: 'Server error',
+      message: 'An unexpected error occurred' 
+    });
   }
 };
 
