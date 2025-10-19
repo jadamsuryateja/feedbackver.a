@@ -18,22 +18,53 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, role })
       });
-      if (!response.ok) throw new Error('Login failed');
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Login failed');
+      }
+      
       return response.json();
     },
 
     verify: async () => {
       const token = getToken();
       if (!token) throw new Error('No token');
+      
       const response = await fetch(`${API_URL}/auth/verify`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (!response.ok) throw new Error('Verification failed');
+      
+      if (!response.ok) {
+        throw new Error('Verification failed');
+      }
+      
       return response.json();
     }
   },
 
   config: {
+    // Add polling method for config updates
+    poll: async (callback: (data: any) => void, interval = 30000) => {
+      const pollConfigs = async () => {
+        try {
+          const data = await api.config.getAll();
+          callback(data);
+        } catch (error) {
+          console.error('Polling error:', error);
+        }
+      };
+
+      // Initial fetch
+      await pollConfigs();
+      
+      // Set up polling interval
+      const timer = setInterval(pollConfigs, interval);
+      
+      // Return cleanup function
+      return () => clearInterval(timer);
+    },
+
     create: async (config: Config) => {
       const response = await fetch(`${API_URL}/config`, {
         method: 'POST',
@@ -112,6 +143,27 @@ export const api = {
   },
 
   feedback: {
+    // Add polling method for feedback updates
+    pollSummary: async (params: any, callback: (data: any) => void, interval = 30000) => {
+      const pollSummary = async () => {
+        try {
+          const data = await api.feedback.getSummary(params);
+          callback(data);
+        } catch (error) {
+          console.error('Polling error:', error);
+        }
+      };
+
+      // Initial fetch
+      await pollSummary();
+      
+      // Set up polling interval
+      const timer = setInterval(pollSummary, interval);
+      
+      // Return cleanup function
+      return () => clearInterval(timer);
+    },
+
     submit: async (data: any) => {
       const response = await fetch(`${API_URL}/feedback/submit`, {
         method: 'POST',
