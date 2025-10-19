@@ -9,7 +9,11 @@ export const api = {
     login: async (username: string, password: string, role: string) => {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include',
         body: JSON.stringify({ username, password, role })
       });
       
@@ -28,8 +32,10 @@ export const api = {
       const response = await fetch(`${API_URL}/auth/verify`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include'
       });
       
       if (!response.ok) {
