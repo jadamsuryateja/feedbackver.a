@@ -30,13 +30,31 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 
-// Configure CORS
+// Configure CORS with dynamic origin check
 app.use(cors({
-  origin: [
-    'https://feedbak-v5-lgsz.vercel.app',
-    'https://feedbak-v5-lgsz-git-main-feed-projects.vercel.app',
-    'http://localhost:5173'
-  ],
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      'https://feedbak-v5-lgsz.vercel.app',
+      'https://feedbak-v5-lgsz-git-main-feed-projects.vercel.app',
+      'http://localhost:5173',
+      'http://localhost:5174'
+    ];
+
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    // Allow all preview deployments from vercel
+    if (origin.includes('feedbak-v5') && origin.includes('.vercel.app')) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn('CORS blocked origin:', origin);
+      callback(null, false);
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true,
@@ -48,25 +66,11 @@ connectDB();
 
 // Security headers middleware
 app.use((req, res, next) => {
-  // Existing headers
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  
-  // Update CORS headers
-  const origin = req.headers.origin;
-  if (origin && [
-    'https://feedbak-v5-lgsz.vercel.app',
-    'https://feedbak-v5-lgsz-git-main-feed-projects.vercel.app',
-    'http://localhost:5173'
-  ].includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
-  
+
   next();
 });
 
