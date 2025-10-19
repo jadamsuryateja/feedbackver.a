@@ -105,7 +105,7 @@ const AdminDashboard = () => {
             </div>
             <div className="flex-1 flex justify-center mb-4 sm:mb-0">
               <img
-                src="/images/logo.png"
+                src="https://i.ibb.co/8C02vFT/logo.jpg"
                 alt="NEC Logo"
                 className="h-10 sm:h-12 object-contain"
               />
